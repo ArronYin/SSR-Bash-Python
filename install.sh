@@ -1,12 +1,5 @@
 #!/bin/bash
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-#Disable China
-wget http://iscn.kirito.moe/run.sh
-. ./run.sh
-if [[ $area == cn ]];then
-echo "Unable to install in china"
-exit
-fi
 #Check Root
 [ $(id -u) != "0" ] && { echo "Error: You must be root to run this script"; exit 1; }
 #Check OS
@@ -64,9 +57,10 @@ if [[ ${OS} == Debian ]];then
 fi
 
 #Install SSR and SSR-Bash
+mkdir /usr/local/SSR-Bash-Python
+cp -r * /usr/local/SSR-Bash-Python/
 cd /usr/local
 git clone https://github.com/shadowsocksr/shadowsocksr.git
-git clone https://github.com/FunctionClub/SSR-Bash-Python.git
 cd /usr/local/shadowsocksr
 bash initcfg.sh
 
@@ -81,6 +75,41 @@ make install
 popd
 ldconfig
 cd $workdir && rm -rf libsodium-$LIBSODIUM_VER.tar.gz libsodium-$LIBSODIUM_VER
+
+#Start when boot
+if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
+    cat >/etc/init.d/ssr-bash-python <<EOF
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          SSR-Bash_python
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Should-Start: $network
+# Should-Stop: $network
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description: SSR-Bash-Python
+# Description: SSR-Bash-Python
+### END INIT INFO
+iptables-restore < /etc/iptables.up.rules
+bash /usr/local/shadowsocksr/logrun.sh
+EOF
+    chmod 755 /etc/init.d/ssr-bash-python
+    chmod +x /etc/init.d/ssr-bash-python
+    cd /etc/init.d
+    update-rc.d ssr-bash-python defaults 95
+fi
+
+if [[ ${OS} == CentOS ]];then
+    echo "
+iptables-restore < /etc/iptables.up.rules
+bash /usr/local/shadowsocksr/logrun.sh
+" > /etc/rc.d/init.d/ssr-bash-python
+    chmod +x  /etc/rc.d/init.d/ssr-bash-python
+    echo "/etc/rc.d/init.d/ssr-bash-python" >> /etc/rc.d/rc.local
+    chmod +x /etc/rc.d/rc.local
+fi
+
 
 #Change CentOS7 Firewall
 if [[ ${OS} == CentOS && $CentOS_RHEL_version == 7 ]];then
@@ -110,15 +139,21 @@ systemctl enable iptables.service
 fi
 
 #Install SSR-Bash Background
-wget -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/ArronYin/SSR-Bash-Python/master/ssr
+cp /usr/local/SSR-Bash-Python/ssr /usr/local/bin/ssr
 chmod +x /usr/local/bin/ssr
 
 #Modify ShadowsocksR API
 sed -i "s/sspanelv2/mudbjson/g" /usr/local/shadowsocksr/userapiconfig.py
 sed -i "s/UPDATE_TIME = 60/UPDATE_TIME = 10/g" /usr/local/shadowsocksr/userapiconfig.py
+sed -i "s/SERVER_PUB_ADDR = '127.0.0.1'/SERVER_PUB_ADDR = '$(wget -qO- -t1 -T2 ipinfo.io/ip)'/" /usr/local/shadowsocksr/userapiconfig.py
 #INstall Success
+bash /usr/local/SSR-Bash-Python/self-check.sh
 echo '安装完成！输入 ssr 即可使用本程序~'
 echo 'Telegram Group: https://t.me/functionclub'
 echo 'Google Puls: https://plus.google.com/communities/113154644036958487268'
 echo 'Github: https://github.com/FunctionClub'
-echo 'QQ Group: 277717865(废弃)'
+echo 'QQ Group:277717865'
+echo 'Function Club 无限期停更说明'
+echo 'https://www.ixh.me/2017/05/function-club-stop/'
+echo 'For legal reason, this packet will not receive update'
+echo 'Goodbye, user'
