@@ -57,10 +57,10 @@ if [[ ${OS} == Debian ]];then
 fi
 
 #Install SSR and SSR-Bash
-mkdir /usr/local/SSR-Bash-Python
-cp -r * /usr/local/SSR-Bash-Python/
 cd /usr/local
+git clone https://github.com/FunctionClub/SSR-Bash-Python.git
 git clone https://github.com/shadowsocksr/shadowsocksr.git
+cp -r * /usr/local/SSR-Bash-Python/
 cd /usr/local/shadowsocksr
 bash initcfg.sh
 
