@@ -40,12 +40,13 @@ echo "5.运行状态"
 echo "6.修改DNS"
 echo "7.开启用户WEB面板"
 echo "8.关闭用户WEB面板"
+echo "9.开/关服务端开机启动"
 echo "直接回车返回上级菜单"
 
 while :; do echo
 	read -p "请选择： " serverc
 	[ -z "$serverc" ] && ssr && break
-	if [[ ! $serverc =~ ^[1-8]$ ]]; then
+	if [[ ! $serverc =~ ^[1-9]$ ]]; then
 		echo "输入错误! 请输入正确的数字!"
 	else
 		break	
@@ -147,3 +148,42 @@ if [[ $serverc == 8 ]];then
 	echo ""
 	bash /usr/local/SSR-Bash-Python/server.sh
 fi
+
+if [[ $serverc == 9 ]];then
+	if [[ ${OS} == Ubuntu || ${OS} == Debian ]];then
+    	cat >/etc/init.d/ssr-bash-python <<EOF
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          SSR-Bash_python
+# Required-Start: $local_fs $remote_fs
+# Required-Stop: $local_fs $remote_fs
+# Should-Start: $network
+# Should-Stop: $network
+# Default-Start:        2 3 4 5
+# Default-Stop:         0 1 6
+# Short-Description: SSR-Bash-Python
+# Description: SSR-Bash-Python
+### END INIT INFO
+iptables-restore < /etc/iptables.up.rules
+bash /usr/local/shadowsocksr/logrun.sh
+EOF
+    	chmod 755 /etc/init.d/ssr-bash-python
+    	chmod +x /etc/init.d/ssr-bash-python
+    	cd /etc/init.d
+    	update-rc.d ssr-bash-python defaults 95
+	fi
+
+	if [[ ${OS} == CentOS ]];then
+    	echo "
+iptables-restore < /etc/iptables.up.rules
+bash /usr/local/shadowsocksr/logrun.sh
+" > /etc/rc.d/init.d/ssr-bash-python
+    	chmod +x  /etc/rc.d/init.d/ssr-bash-python
+    	echo "/etc/rc.d/init.d/ssr-bash-python" >> /etc/rc.d/rc.local
+    	chmod +x /etc/rc.d/rc.local
+	fi
+	echo "开机启动设置完成！"
+        echo ""
+	bash /usr/local/SSR-Bash-Python/server.sh
+fi
+
