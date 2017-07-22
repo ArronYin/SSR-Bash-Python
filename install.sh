@@ -139,7 +139,7 @@ systemctl enable iptables.service
 fi
 
 #Install SSR-Bash Background
-cp /usr/local/SSR-Bash-Python/ssr /usr/local/bin/ssr
+wget -N --no-check-certificate -O /usr/local/bin/ssr https://raw.githubusercontent.com/ArronYin/SSR-Bash-Python/master/ssr
 chmod +x /usr/local/bin/ssr
 
 #Modify ShadowsocksR API
