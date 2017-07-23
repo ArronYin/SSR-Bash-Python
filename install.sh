@@ -60,7 +60,6 @@ fi
 cd /usr/local
 git clone https://github.com/ArronYin/SSR-Bash-Python.git
 git clone https://github.com/shadowsocksr/shadowsocksr.git
-cp -r * /usr/local/SSR-Bash-Python/
 cd /usr/local/shadowsocksr
 bash initcfg.sh
 
